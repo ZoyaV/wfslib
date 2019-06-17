@@ -19,7 +19,7 @@ Cоздание пакета и тестирование(Полина):
 * setuptools
 
 Оформление кода:
-* pep8
+* pycodestyle
 * pylint
 * Аннотации: https://docs.python.org/3/library/typing.html
 

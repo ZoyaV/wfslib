@@ -1,11 +1,13 @@
-import h5py # type: ignore
-import numpy # type: ignore
+import h5py  # type: ignore
+import numpy  # type: ignore
 from typing import Union
 
 DataSources = Union[str, h5py.File, numpy.ndarray]
 
+
 class WFSError(Exception):
     pass
+
 
 class WFSData():
 

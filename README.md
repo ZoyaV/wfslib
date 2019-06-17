@@ -25,3 +25,8 @@ Cоздание пакета и тестирование(Полина):
 
 Ссылка на данные: https://cloud.iszf.irk.ru/index.php/s/odHPMppnvbgUHFW
 
+Перед заливкой кода не забываем выполнять:
+
+* `pycodestyle`
+* `mypy -v wfslib`
+* `pytest -v`

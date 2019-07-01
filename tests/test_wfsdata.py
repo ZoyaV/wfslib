@@ -34,22 +34,40 @@ if __name__ == "__main__":
     
     #Класс WFSData
     wfs = WFSData(source = h5f, geometry = geom.geometry)
-    wfs.save('lolkek.h5')
-#    
-#    plt.subplot(1,4,1)
-#    plt.imshow(wfs[0][45])
-#    plt.subplot(1,4,2)
-#    plt.imshow(wfs[0][40])
-#    plt.subplot(1,4,3)
-#    plt.imshow(wfs[0][50])
-#    plt.subplot(1,4,4)
-#    plt.imshow(wfs[0][55])
-#    plt.show()
+    wfs.save('datageom.h5')
+    wfs.reference = 126
+    wfs.show_gometry()
+   # print(wfs.reference)
+#
+    plt.figure(figsize = (10, 10))
+    plt.subplot(1,4,1)
+    plt.imshow(wfs[0]['subaps'][4])
+    ofset = list(wfs[0]['ofsets'][4])
+    plt.title('%d - Ofset: %.1f,%.1f'%(4, ofset[0],ofset[1]))
+    
+    plt.subplot(1,4,2)
+    plt.imshow(wfs[0]['subaps'][11])
+    ofset = list(wfs[0]['ofsets'][11])
+    plt.title('%d - Ofset: %.1f,%.1f'%(11, ofset[0],ofset[1]))
+    
+    plt.subplot(1,4,3)
+    plt.imshow(wfs[0]['subaps'][180])
+    ofset = list(wfs[0]['ofsets'][180])
+    plt.title('%d - Ofset: %.1f,%.1f'%(180, ofset[0],ofset[1]))
+    
+    plt.subplot(1,4,4)
+    plt.imshow(wfs[0]['subaps'][187])
+    ofset = list(wfs[0]['ofsets'][187])
+    plt.title('%d - Ofset: %.1f,%.1f'%(187, ofset[0],ofset[1]))
+    
+    plt.tight_layout()
+    plt.show()
     
     h5f.close()
     
-    print("kek")
-    wfs_new = WFSData('lolkek.h5','r')
-    plt.imshow(wfs_new[5][45])
+
+    wfs_new = WFSData('datageom.h5','r')
+    wfs_new.show_gometry()
+    #plt.imshow(wfs_new[5][45])
 
     

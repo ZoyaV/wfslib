@@ -1,5 +1,6 @@
 import h5py  # type: ignore
 import numpy  # type: ignore
+from skimage.feature import register_translation
 from typing import Union
 from geometry import Geometry
 
@@ -18,7 +19,7 @@ class WFSData():
 
     def __init__(self, source: DataSources, 
                      geometry: Union[numpy.ndarray, None]) -> None:
-        self._reference = 55
+        self._reference = 81
         self._source = None
         self._geometry = None
         self._subapertures = None
@@ -71,9 +72,15 @@ class WFSData():
     def __iter__(self):
         raise NotImplementedError()  
 
-    def __getitem__(self, frame_number: int) -> numpy.ndarray:        
+    def __getitem__(self, frame_number: int) -> dict:        
         self.__load_subapertures(frame_number)
-        return self._subapertures
+        ofsets = []
+        for i, sub in enumerate(self._subapertures):
+            shift, _, _ = register_translation(self._subapertures[self._reference], 
+                                               self._subapertures[i], 100)
+            ofsets.append(shift)
+        data = {"ofsets": ofsets, "subaps": self._subapertures}
+        return data
     
     def add_geometry(self, geometry: numpy.ndarray) -> None:
         self._geometry = geometry
@@ -100,7 +107,6 @@ class WFSData():
     @reference.setter
     def reference(self, ref_num):
         self._reference = ref_num
-        self.__load_frames()
 
     @property
     def geometry(self) -> numpy.ndarray:

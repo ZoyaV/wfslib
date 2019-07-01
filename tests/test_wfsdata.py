@@ -21,7 +21,7 @@ if __name__ == "__main__":
     f.write(ufr.content) #записываем содержимое в файл; как видите - content запроса
     f.close()
     
-    #тестим 
+    #Загружаем данные
     h5f = h5py.File('file4.h5','r')
     frame0 = h5f["data"][:][0]
     
@@ -31,17 +31,25 @@ if __name__ == "__main__":
     start_point = p['start_point'][0] -2, p['start_point'][1]+2
     geom.set_parametrs( start_point = start_point)
     geom.show()
+    
     #Класс WFSData
     wfs = WFSData(source = h5f, geometry = geom.geometry)
-    
-    plt.subplot(1,3,1)
-    plt.imshow(wfs[0][45])
-    plt.subplot(1,3,2)
-    plt.imshow(wfs[0][40])
-    plt.subplot(1,3,3)
-    plt.imshow(wfs[0][50])
-    plt.show()
+    wfs.save('lolkek.h5')
+#    
+#    plt.subplot(1,4,1)
+#    plt.imshow(wfs[0][45])
+#    plt.subplot(1,4,2)
+#    plt.imshow(wfs[0][40])
+#    plt.subplot(1,4,3)
+#    plt.imshow(wfs[0][50])
+#    plt.subplot(1,4,4)
+#    plt.imshow(wfs[0][55])
+#    plt.show()
     
     h5f.close()
+    
+    print("kek")
+    wfs_new = WFSData('lolkek.h5','r')
+    plt.imshow(wfs_new[5][45])
 
     

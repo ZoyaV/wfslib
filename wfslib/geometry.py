@@ -9,6 +9,9 @@ import pickle
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.lines as lines
+from typing import Union
+
+
 
 
 def moving_average(a, n=3) :
@@ -18,7 +21,7 @@ def moving_average(a, n=3) :
 
 class Geometry():
     
-    def __init__(self, image, make_func = 'not_auto', border = 0, 
+    def __init__(self, image: np.ndarray, make_func = 'not_auto', border = 0, 
                          cell_width = 0, start_point = [0,0]):
         self.image = image
         self._border = border
@@ -31,7 +34,7 @@ class Geometry():
         elif make_func.lower() == 'not_auto':
             pass
         
-    def auto_make(self, diraction = 0):
+    def auto_make(self, diraction = 0) -> dict:
         parametrs = self.__detect_grid_lines(diraction)
         self._border = parametrs[-1]
         self._cell_width = parametrs[-2]
@@ -42,10 +45,11 @@ class Geometry():
         
         return {'border': self._border, 'cell_width': self._cell_width, 'start_point': self._start_point}
     
-    def set_image(self, image):
+    def set_image(self, image: np.ndarray) -> None:
         self.image = image
         
-    def set_parametrs(self, border = None, cell_width = None, start_point = None):
+    def set_parametrs(self, border = None, cell_width = None, 
+                      start_point = None) -> None:
         if border!=None:
             self._border = border
         if cell_width!=None:
@@ -57,11 +61,11 @@ class Geometry():
         self._cells = self.__points2grid(*points)
         
     @property
-    def geometry(self):
+    def geometry(self) -> np.ndarray:
         return np.asarray(self._cells)
         
     @property
-    def parametrs(self):
+    def parametrs(self) -> list:
         return [self._border, self._cell_width, self._start_point]
     
     def show(self):        
@@ -196,14 +200,7 @@ class Geometry():
         return cells    
         
 
-if __name__ == "__main__":
-    with open('test.pkl','rb') as f:
-         image = pickle.load(f)
-    geom = Geometry(image, 'not_auto')
-    p = geom.auto_make()
-    start_point = p['start_point'][0] -2, p['start_point'][1]
-    geom.set_parametrs( start_point = start_point)
-    geom.show()
+
     
     
 

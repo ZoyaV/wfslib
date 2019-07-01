@@ -28,18 +28,27 @@ class WFSData():
 
     def __load_source(self, source) -> None:
         if type(source) == str:
-            pass        
+            #Проверка имени
+            print("kek~")
+            h5f = h5py.File(source,'r')
+            if "data" in h5f.keys():
+                self._source = h5f["data"][:]
+                print("kek~!")
+            if "geometry" in h5f.keys():
+                self._geometry = h5f["geometry"][:] 
+            h5f.close() 
         if type(source) == h5py.File:
-            key = list(source.keys())[0]
-            self._source = source[key][:]
+            #проверка имени
+            if "data" in source.keys():
+                self._source = source["data"][:]
             if "geometry" in source.keys():
-                self._geometry = source["geometry"][:]                
-        if type(self._source) == numpy.ndarray:
-            pass
+                self._geometry = source["geometry"][:]      
+                
+        if type(source) == numpy.ndarray:
+            self._source = source
       #  raise NotImplementedError()
-
     def __load_geometry(self, geometry: Union[numpy.ndarray, None]) -> None:
-        if self._geometry != None:
+        if type(self._geometry) != type(None):
             return
         if type(self._geometry) == type(None) and type(geometry) == type(None):
             #Предупреждение, нет геометрии для файла!
@@ -53,6 +62,9 @@ class WFSData():
         sx, ssx , sy, ssy = list(map(int,[cell[0][0], cell[0][1],
                                        cell[1][0], cell[1][2]]))    
         img_cell = self._source[frame_number][sx:ssx,sy:ssy]
+        
+        
+        #print(self._source[frame_number])
         return img_cell
       
     def __load_subapertures(self, frame_number)->None:
@@ -74,7 +86,7 @@ class WFSData():
     def save(self, name:str) -> None:
         #FileName Warning
         with h5py.File(name, 'w') as f:
-            f.create_dataset("source", data=self._source)
+            f.create_dataset("data", data=self._source)
             f.create_dataset("geometry", data=self._geometry)        
 
     @property
@@ -92,23 +104,3 @@ class WFSData():
 
     def show_gometry(self) -> None:
         raise NotImplementedError()
-#
-#if __name__ == "__main__":
-#    with open('test.pkl','rb') as f:
-#         image = pickle.load(f)
-#    geom = Geometry(image, 'not_auto')
-#    p = geom.auto_make()
-#    start_point = p['start_point'][0] -2, p['start_point'][1]
-#    geom.set_parametrs( start_point = start_point)
-#    
-#    h5f = h5py.File('file2.h5','r')
-#    
-#    wfs = WFSData(source = h5f, geometry = geom.geometry)    
-#    arr = h5f["data"][:]
-#    
-#    wfs.save("first_test.h5")
-#    h5f.close()
-#    
-#    plt.imshow(wfs[0][34])
-#    #geom.show()
-    

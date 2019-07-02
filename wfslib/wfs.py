@@ -2,7 +2,7 @@ import h5py  # type: ignore
 import numpy  # type: ignore
 from skimage.feature import register_translation
 from typing import Union
-from geometry import Geometry
+from .geometry import Geometry
 
 import pickle
 import matplotlib.pyplot as plt

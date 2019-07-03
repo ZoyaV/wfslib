@@ -25,16 +25,22 @@ class Geometry():
         if make_func.lower() == 'auto':
             self.auto_make()
         elif make_func.lower() == 'not_auto':
-            pass
-        
+            if border!= 0 and cell_width!=0:
+                self.__make()
+            pass        
+    
+    def __make(self) -> None:
+        points = make_gridpoints(self.image, self._cell_width, self._border, self._start_point )
+        self._cells = points2grid(*points)
+        return 
+    
     def auto_make(self, diraction = 0) -> dict:
         parametrs = detect_grid_lines(self.image,  direction = 0)
         self._border = parametrs[-1]
         self._cell_width = parametrs[-2]
         self._start_point = parametrs[:2]
         
-        points = make_gridpoints(self.image, self._cell_width, self._border, self._start_point )
-        self._cells = points2grid(*points)
+        self.__make()
         
         return {'border': self._border, 'cell_width': self._cell_width, 'start_point': self._start_point}
     
@@ -50,8 +56,7 @@ class Geometry():
         if start_point!=None:
             self._start_point = start_point
         
-        points = make_gridpoints(self.image, self._cell_width, self._border, self._start_point )
-        self._cells = points2grid(*points)
+        self.__make()
         
     @property
     def geometry(self) -> np.ndarray:
@@ -59,7 +64,7 @@ class Geometry():
         
     @property
     def parametrs(self) -> list:
-        return [self._border, self._cell_width, self._start_point]
+        return  {'border': self._border, 'cell_width': self._cell_width, 'start_point': self._start_point}
     
     def show(self):        
         plt.figure(figsize = (8,8))         

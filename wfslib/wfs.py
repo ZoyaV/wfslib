@@ -2,6 +2,7 @@ import h5py  # type: ignore
 import numpy  # type: ignore
 import glob
 from warnings import warn
+from  _wfs import qualitative_sub
 from skimage.feature import register_translation
 from typing import Union
 from geometry import Geometry
@@ -16,6 +17,25 @@ DataSources = Union[str, h5py.File, numpy.ndarray]
 class WFSError(Exception):
     pass
 
+class Frame():
+    def __init__(self, image, geometry, reference):
+        self.image = image
+        self._geometry = geometry
+        self._reference = reference
+        
+    def __getitem__(self, sub_number: int) -> numpy.ndarray: 
+        cell = self._geometry[sub_number]
+        sx, ssx , sy, ssy = list(map(int,[cell[0][0], cell[0][1],
+                                       cell[1][0], cell[1][2]]))           
+        return self.image[sx:ssx,sy:ssy]
+    
+    def get_offset(self, sub_number):
+        register_translation(self.__getitem__[self._reference],
+                             self.__getitem__[sub_number])
+        
+    def set_image(self, image):
+        self.image = image
+    
 
 class WFSData():
 
@@ -52,57 +72,29 @@ class WFSData():
             self._source = source
 
     def __load_geometry(self, geometry: Union[numpy.ndarray, None]) -> None:
-        if isinstance(self._geometry, type(None)):
+        if not isinstance(self._geometry, type(None)):
             return
         if isinstance(self._geometry, type(None)) and isinstance(geometry, type(None)):
             raise WFSError('No geometry for the file.') 
         self._geometry = geometry        
    
-    def __get_cell(self, sub_number:int, frame_number)->numpy.ndarray:
-        cell = self._geometry[sub_number]
-        sx, ssx , sy, ssy = list(map(int,[cell[0][0], cell[0][1],
-                                       cell[1][0], cell[1][2]]))    
-        img_cell = self._source[frame_number][sx:ssx,sy:ssy]
-        return img_cell
-      
-    def __load_subapertures(self, frame_number)->None:
-        self._subapertures = []
-        for i in range(len(self._geometry)): 
-            self._subapertures.append(self.__get_cell(i, frame_number)) 
-        self._subapertures = numpy.asarray(self._subapertures)
-
     def __iter__(self):
         raise NotImplementedError()  
 
-    def __getitem__(self, frame_number: int) -> dict:        
-        self.__load_subapertures(frame_number)
-        ofsets = []
-        for i, sub in enumerate(self._subapertures):
-            shift, _, _ = register_translation(self._subapertures[self._reference], 
-                                               self._subapertures[i], 100)
-            ofsets.append(shift)
-        data = {"ofsets": ofsets, "subaps": self._subapertures}
-        return data
+    def __getitem__(self, frame_number: int) -> dict:   
+        frame = Frame(self._source[frame_number], self._geometry, self._reference)
+        return frame
     
     def add_geometry(self, geometry: numpy.ndarray) -> None:
         self._geometry = geometry
         
     def save(self, name:str) -> None:
-        #FileName Warning
         if "h5" not in name:
             warn("File name is not hdf5 file format", UserWarning)
         with h5py.File(name, 'w') as f:
             f.create_dataset("data", data=self._source)
             f.create_dataset("geometry", data=self._geometry) 
             
-    def __qualitative_sub(self, cell):
-        t = 140
-        arr_good = cell[cell>=t].ravel().shape[0]
-        arr_bad = cell[cell<t].ravel().shape[0]
-        if arr_bad*1.2 > arr_good:
-            return 0
-        else:
-            return 1
 
     @property
     def reference(self) -> Union[int, None]:
@@ -117,12 +109,13 @@ class WFSData():
         return self._geometry
 
     def show_gometry(self) -> None:
-        self.__load_subapertures(0)
+#        self.__load_subapertures(0)
+        frame = Frame(self._source[0], self._geometry, self._reference)
         plt.figure(figsize = (8,8))         
         plt.imshow(self._source[0])
         for i in range(len(self._geometry)):
             weight = 'normal'
-            if self.__qualitative_sub(self._subapertures[i]):
+            if qualitative_sub(frame[i]):
                 color = '#f6416e'
             else:
                 color = 'c'

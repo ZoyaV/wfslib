@@ -1,10 +1,20 @@
 import numpy as np
 
+
+def qualitative_sub(cell):
+        t = 140
+        arr_good = cell[cell>=t].ravel().shape[0]
+        arr_bad = cell[cell<t].ravel().shape[0]
+        if arr_bad*1.2 > arr_good:
+            return 0
+        else:
+            return 1 
+        
 def moving_average(a, n=3) :
     ret = np.cumsum(a, dtype=float)
     ret[n:] = ret[n:] - ret[:-n]
     return ret[n - 1:] / n
-
+        
 def clear_extremums(maxes):
         main_points = []
         last_point = 0

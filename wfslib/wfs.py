@@ -30,8 +30,8 @@ class Frame():
         return self.image[sx:ssx,sy:ssy]
     
     def get_offset(self, sub_number):
-        register_translation(self.__getitem__[self._reference],
-                             self.__getitem__[sub_number])
+        return register_translation(self.__getitem__(self._reference),
+                             self.__getitem__(sub_number))[0]
         
     def set_image(self, image):
         self.image = image
@@ -48,6 +48,8 @@ class WFSData():
 
         self.__load_source(source)
         self.__load_geometry( geometry)
+        
+        self._frame = Frame(self._source[0], self._geometry, self._reference)
 
     def __load_source(self, source) -> None:
         if isinstance(source, str):
@@ -76,14 +78,14 @@ class WFSData():
             return
         if isinstance(self._geometry, type(None)) and isinstance(geometry, type(None)):
             raise WFSError('No geometry for the file.') 
-        self._geometry = geometry        
+        self._geometry = geometry  
    
     def __iter__(self):
         raise NotImplementedError()  
 
     def __getitem__(self, frame_number: int) -> dict:   
-        frame = Frame(self._source[frame_number], self._geometry, self._reference)
-        return frame
+        self._frame.set_image(self._source[frame_number])
+        return self._frame
     
     def add_geometry(self, geometry: numpy.ndarray) -> None:
         self._geometry = geometry
@@ -110,12 +112,12 @@ class WFSData():
 
     def show_gometry(self) -> None:
 #        self.__load_subapertures(0)
-        frame = Frame(self._source[0], self._geometry, self._reference)
+        self._frame.set_image(self._source[0])
         plt.figure(figsize = (8,8))         
         plt.imshow(self._source[0])
         for i in range(len(self._geometry)):
             weight = 'normal'
-            if qualitative_sub(frame[i]):
+            if qualitative_sub(self._frame[i]):
                 color = '#f6416e'
             else:
                 color = 'c'

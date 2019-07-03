@@ -28,7 +28,7 @@ class WFSData():
         self.__load_geometry( geometry)
 
     def __load_source(self, source) -> None:
-        if type(source) == str:
+        if isinstance(source, str):
             #Проверка имени
             h5f = h5py.File(source,'r')
             if "data" in h5f.keys():
@@ -36,20 +36,20 @@ class WFSData():
             if "geometry" in h5f.keys():
                 self._geometry = h5f["geometry"][:] 
             h5f.close() 
-        if type(source) == h5py.File:
+        if isinstance(source, h5py.File):
             #проверка имени
             if "data" in source.keys():
                 self._source = source["data"][:]
             if "geometry" in source.keys():
                 self._geometry = source["geometry"][:]      
                 
-        if type(source) == numpy.ndarray:
+        if isinstance(source, numpy.ndarray):
             self._source = source
       #  raise NotImplementedError()
     def __load_geometry(self, geometry: Union[numpy.ndarray, None]) -> None:
-        if type(self._geometry) != type(None):
+        if isinstance(self._geometry, type(None)):
             return
-        if type(self._geometry) == type(None) and type(geometry) == type(None):
+        if isinstance(self._geometry, type(None)) and isinstance(geometry, type(None)):
             #Предупреждение, нет геометрии для файла!
             #Или расчет геометрии автоматом
             pass

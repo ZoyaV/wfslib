@@ -34,40 +34,41 @@ if __name__ == "__main__":
     
     #Класс WFSData
     wfs = WFSData(source = h5f, geometry = geom.geometry)
-    wfs.save('datageom.h5')
+  #  wfs.save('datageom.h5')
     wfs.reference = 126
     wfs.show_gometry()
    # print(wfs.reference)
 #
     plt.figure(figsize = (10, 10))
     plt.subplot(1,4,1)
-    plt.imshow(wfs[0]['subaps'][4])
-    ofset = list(wfs[0]['ofsets'][4])
-    plt.title('%d - Ofset: %.1f,%.1f'%(4, ofset[0],ofset[1]))
+    plt.imshow(wfs[0][4])
+#    ofset = list(wfs[0]['ofsets'][4])
+#    plt.title('%d - Ofset: %.1f,%.1f'%(4, ofset[0],ofset[1]))
     
     plt.subplot(1,4,2)
-    plt.imshow(wfs[0]['subaps'][11])
-    ofset = list(wfs[0]['ofsets'][11])
-    plt.title('%d - Ofset: %.1f,%.1f'%(11, ofset[0],ofset[1]))
+    plt.imshow(wfs[0][11])
+#    ofset = list(wfs[0][11])
+#    plt.title('%d - Ofset: %.1f,%.1f'%(11, ofset[0],ofset[1]))
     
     plt.subplot(1,4,3)
-    plt.imshow(wfs[0]['subaps'][180])
-    ofset = list(wfs[0]['ofsets'][180])
-    plt.title('%d - Ofset: %.1f,%.1f'%(180, ofset[0],ofset[1]))
+    plt.imshow(wfs[0][180])
+#    ofset = list(wfs[0][180])
+#    plt.title('%d - Ofset: %.1f,%.1f'%(180, ofset[0],ofset[1]))
     
     plt.subplot(1,4,4)
-    plt.imshow(wfs[0]['subaps'][187])
-    ofset = list(wfs[0]['ofsets'][187])
-    plt.title('%d - Ofset: %.1f,%.1f'%(187, ofset[0],ofset[1]))
+    plt.imshow(wfs[0][187])
+#    ofset = list(wfs[0]['ofsets'][187])
+#    plt.title('%d - Ofset: %.1f,%.1f'%(187, ofset[0],ofset[1]))
     
     plt.tight_layout()
     plt.show()
     
     h5f.close()
     
+    print(wfs[0].get_offset(187))
 
-    wfs_new = WFSData('datageom.h5','r')
-    wfs_new.show_gometry()
+  #  wfs_new = WFSData('datageom.h5','r')
+   # wfs_new.show_gometry()
     #plt.imshow(wfs_new[5][45])
 
     

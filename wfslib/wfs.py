@@ -1,5 +1,7 @@
 import h5py  # type: ignore
 import numpy  # type: ignore
+import glob
+from warnings import warn
 from skimage.feature import register_translation
 from typing import Union
 from geometry import Geometry
@@ -29,7 +31,10 @@ class WFSData():
 
     def __load_source(self, source) -> None:
         if isinstance(source, str):
-            #Проверка имени
+            if source not in glob.glob("*"):
+                raise WFSError("NameError: not file or directory with name %s."%source)
+            if "h5" not in source:
+                raise WFSError("TypeError: file is not a hdf5-file format type."%source)
             h5f = h5py.File(source,'r')
             if "data" in h5f.keys():
                 self._source = h5f["data"][:]
@@ -37,25 +42,22 @@ class WFSData():
                 self._geometry = h5f["geometry"][:] 
             h5f.close() 
         if isinstance(source, h5py.File):
-            #проверка имени
             if "data" in source.keys():
                 self._source = source["data"][:]
             if "geometry" in source.keys():
-                self._geometry = source["geometry"][:]      
-                
+                self._geometry = source["geometry"][:]   
+            if "data" not in source.keys():
+                raise WFSError('Сan not read the file. Be sure to have the keys "date" for data WFS.')                
         if isinstance(source, numpy.ndarray):
             self._source = source
-      #  raise NotImplementedError()
+
     def __load_geometry(self, geometry: Union[numpy.ndarray, None]) -> None:
         if isinstance(self._geometry, type(None)):
             return
         if isinstance(self._geometry, type(None)) and isinstance(geometry, type(None)):
-            #Предупреждение, нет геометрии для файла!
-            #Или расчет геометрии автоматом
-            pass
+            raise WFSError('No geometry for the file.') 
         self._geometry = geometry        
-      #  raise NotImplementedError()
-      
+   
     def __get_cell(self, sub_number:int, frame_number)->numpy.ndarray:
         cell = self._geometry[sub_number]
         sx, ssx , sy, ssy = list(map(int,[cell[0][0], cell[0][1],
@@ -87,6 +89,8 @@ class WFSData():
         
     def save(self, name:str) -> None:
         #FileName Warning
+        if "h5" not in name:
+            warn("File name is not hdf5 file format", UserWarning)
         with h5py.File(name, 'w') as f:
             f.create_dataset("data", data=self._source)
             f.create_dataset("geometry", data=self._geometry) 
@@ -135,4 +139,3 @@ class WFSData():
                      [x3, x1], [y3, y1],color = color)
       
         plt.show()
-       # raise NotImplementedError()

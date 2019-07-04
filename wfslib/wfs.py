@@ -122,12 +122,16 @@ class WFSData():
     def reference(self, ref_num):
         self._reference = ref_num
 
-    def show_geometry(self) -> None:
+    def show_geometry(self, show_type = "numered") -> None:
         self._frame.set_image(self._source[0])
         plt.figure(figsize = (8,8))         
         plt.imshow(self._source[0])
+        
+        sx = 1
+        sy = 11
         for i in range(len(self.geometry.geometry)):
             weight = 'normal'
+            fontsize = 8
             if qualitative_sub(self._frame[i]):
                 color = '#f6416e'
             else:
@@ -138,7 +142,17 @@ class WFSData():
             x0, x1, x2, x3 = self.geometry.geometry[i][1]
             y0, y1, y2, y3 = self.geometry.geometry[i][0]
             
-            plt.text(x0+1, y0+11, "%s"%i, color = color, fontsize = 8, weight=weight)
+            text = ""
+            if show_type == "numered":
+                text = "%d"%i
+            elif show_type == "offsets":
+                ofst = self._frame.get_offset(i)
+                text = "%.1f, \n %.1f"% (ofst[0], ofst[1])
+                fontsize = 7
+                sx = 2
+                sy = 25
+                
+            plt.text(x0+sx, y0+sy, text, color = color, fontsize = fontsize, weight=weight)
             plt.plot([x0, x1], [y0, y1], 
                      [x0, x2], [y0, y2],
                      [x2, x3], [y2, y3],

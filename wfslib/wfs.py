@@ -21,7 +21,7 @@ class Frame():
     def __init__(self, image, geometry, reference):
         self.image = image
         self._geometry = geometry
-        self._reference = reference
+        self.reference = reference
         
     def __getitem__(self, sub_number: int) -> numpy.ndarray: 
         cell = self._geometry.geometry[sub_number]
@@ -32,7 +32,7 @@ class Frame():
         return len(_geometry.geometry)
     
     def get_offset(self, sub_number):
-        return register_translation(self.__getitem__(self._reference),
+        return register_translation(self.__getitem__(self.reference),
                              self.__getitem__(sub_number))[0]
         
     def set_image(self, image):
@@ -121,12 +121,13 @@ class WFSData():
     @reference.setter
     def reference(self, ref_num):
         self._reference = ref_num
+        self._frame.reference = self._reference
 
     def show_geometry(self, show_type = "numered") -> None:
         self._frame.set_image(self._source[0])
         plt.figure(figsize = (8,8))         
         plt.imshow(self._source[0])
-        
+        plt.title(show_type+" image")
         sx = 1
         sy = 11
         for i in range(len(self.geometry.geometry)):

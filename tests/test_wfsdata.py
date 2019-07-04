@@ -16,25 +16,16 @@ def test_wfsdata_cls():
 
 if __name__ == "__main__":
     
-    #Скачиваем файл
+    #Скачиваем файл  
+
     
-#    arr = np.load("test_f_.npy")
-#    g = Geometry(arr)
-#    g.auto_make(diraction = 0)
-#    #g.set_parametrs(border = 20)
-#    g.show()
-#    
-#    print(g.parametrs)
-    
-    
-#    f=open(r'file.h5',"wb") #открываем файл для записи, в режиме wb
-#    ufr = requests.get("https://cloud.iszf.irk.ru/index.php/s/odHPMppnvbgUHFW/download?path=%2F&files=sunspot1300_crop.h5") #делаем запрос
-#    f.write(ufr.content) #записываем содержимое в файл; как видите - content запроса
-#    f.close()
+    f=open(r'file.h5',"wb") #открываем файл для записи, в режиме wb
+    ufr = requests.get("https://cloud.iszf.irk.ru/index.php/s/odHPMppnvbgUHFW/download?path=%2F&files=sunspot1300_crop.h5") #делаем запрос
+    f.write(ufr.content) #записываем содержимое в файл; как видите - content запроса
+    f.close()
 #
     wfs = WFSData('file.h5')
     p = wfs.geometry.options
-    #start_point = p['start_point'][0] -1, p['start_point'][1]+2
     wfs.geometry.set_options( shift = (-1,2))
     wfs.reference = 169
     

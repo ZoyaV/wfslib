@@ -35,10 +35,10 @@ class Geometry():
         return 
     
     def auto_make(self, diraction = 0) -> dict:
-        parametrs = detect_grid_lines(self.image,  direction = 0)
-        self._border = parametrs[-1]
-        self._cell_width = parametrs[-2]
-        self._start_point = parametrs[:2]
+        options = detect_grid_lines(self.image,  direction = 0)
+        self._border = options[-1]
+        self._cell_width = options[-2]
+        self._start_point = options[:2]
         
         self.__make()
         
@@ -47,14 +47,15 @@ class Geometry():
     def set_image(self, image: np.ndarray) -> None:
         self.image = image
         
-    def set_parametrs(self, border = None, cell_width = None, 
-                      start_point = None) -> None:
-        if border!=None:
+    def set_options(self, border = None, cell_width = None, 
+                      shift = None) -> None:
+        if border is not None:
             self._border = border
-        if cell_width!=None:
+        if cell_width is not None:
             self._cell_width = cell_width
-        if start_point!=None:
-            self._start_point = start_point
+        if shift is not None:
+            self._start_point[0] += shift[0]
+            self._start_point[1] += shift[1]
         
         self.__make()
         
@@ -63,7 +64,7 @@ class Geometry():
         return np.asarray(self._cells)
         
     @property
-    def parametrs(self) -> list:
+    def options(self) -> list:
         return  {'border': self._border, 'cell_width': self._cell_width, 'start_point': self._start_point}
     
     def show(self):        

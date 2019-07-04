@@ -1,6 +1,6 @@
 import h5py  # type: ignore
 import numpy  # type: ignore
-import glob
+from pathlib import Path
 from warnings import warn
 from  _wfs import qualitative_sub
 from skimage.feature import register_translation
@@ -28,6 +28,8 @@ class Frame():
         sx, ssx , sy, ssy = list(map(int,[cell[0][0], cell[0][1],
                                        cell[1][0], cell[1][2]]))           
         return self.image[sx:ssx,sy:ssy]
+    def __len__(self):
+        return len(_geometry.geometry)
     
     def get_offset(self, sub_number):
         return register_translation(self.__getitem__(self._reference),
@@ -39,8 +41,9 @@ class Frame():
 
 class WFSData():
 
-    def __init__(self, source: DataSources) -> None:
+    def __init__(self, source: DataSources, dataset_name = "data") -> None:
         
+        self.dataset_name = dataset_name
         self._reference = 81
         self._source = None
         self.geometry = None
@@ -52,13 +55,13 @@ class WFSData():
 
     def __load_source(self, source) -> None:
         if isinstance(source, str):
-            if source not in glob.glob("*"):
+            if not Path(source).exists():
                 raise WFSError("NameError: not file or directory with name %s."%source)
             if "h5" not in source:
                 raise WFSError("TypeError: file is not a hdf5-file format type."%source)
             h5f = h5py.File(source,'r')
-            if "data" in h5f.keys():
-                self._source = h5f["data"][:]
+            if self.dataset_name in h5f.keys():
+                self._source = h5f[self.dataset_name][:]
             if ("cell_width" in h5f.keys() and 
                             "border" in h5f.keys() and 
                             "start_point" in h5f.keys()) :
@@ -71,8 +74,8 @@ class WFSData():
                                          start_point = start_point)
             h5f.close() 
         if isinstance(source, h5py.File):
-            if "data" in source.keys():
-                self._source = source["data"][:]
+            if self.dataset_name in source.keys():
+                self._source = source[self.dataset_name][:]
             if  ("cell_width" in source.keys() and 
                             "border" in source.keys() and 
                             "start_point" in source.keys()):
@@ -83,7 +86,7 @@ class WFSData():
                                          cell_width = cell_width, 
                                          border = border,
                                          start_point = start_point) 
-            if "data" not in source.keys():
+            if self.dataset_name not in source.keys():
                 raise WFSError('Сan not read the file. Be sure to have the keys "date" for data WFS.')                
         if isinstance(source, numpy.ndarray):
             self._source = source
@@ -105,7 +108,7 @@ class WFSData():
         if "h5" not in name:
             warn("File name is not hdf5 file format", UserWarning)
         with h5py.File(name, 'w') as f:
-            f.create_dataset("data", data=self._source)
+            f.create_dataset(self.dataset_name, data=self._source)
             f.create_dataset("cell_width", data= numpy.asarray([self.geometry._cell_width]))
             f.create_dataset("border", data=numpy.asarray([self.geometry._border]))
             f.create_dataset("start_point", data=numpy.asarray([self.geometry._start_point]))
@@ -120,7 +123,6 @@ class WFSData():
         self._reference = ref_num
 
     def show_geometry(self) -> None:
-#        self.__load_subapertures(0)
         self._frame.set_image(self._source[0])
         plt.figure(figsize = (8,8))         
         plt.imshow(self._source[0])

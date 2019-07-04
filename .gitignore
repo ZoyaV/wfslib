@@ -2,6 +2,20 @@
 # Created by https://www.gitignore.io/api/c++,pydev,cmake,python,pycharm,eclipse
 # Edit at https://www.gitignore.io/?templates=c++,pydev,cmake,python,pycharm,eclipse
 
+### VisualStudioCode ###
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+### VisualStudioCode Patch ###
+# Ignore all local history of files
+.history
+
+### Data ###
+*.h5
+
 ### C++ ###
 # Prerequisites
 *.d

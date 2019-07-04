@@ -25,7 +25,7 @@ def clear_extremums(maxes):
                 mean_point.append(point)
             else:            
                 if len(mean_point)!=0:
-                    main_points.append((np.max(mean_point)))
+                    main_points.append((np.max((mean_point))))
                 mean_point = []
             last_point = point
         return main_points
@@ -43,13 +43,14 @@ def get_cell_parametrs(lines):
     d1 = 0  
     d2 = 0
     d =[]
-    
+    lines = sorted(list(set(lines)))
+
     for i in range(2,len(lines),2):
         d.append(abs(lines[i] - lines[i-1]))
     d1 = np.median(d)
     d = []
     for i in range(1,len(lines),2):
-        d.append(abs(lines[i] -lines[i-1])) 
+        d.append(abs(lines[i] -lines[i-1]))
     d2 = np.median(d)
 
     return {"cell_width":max(d2,d1), "border":min(d2,d1)} 

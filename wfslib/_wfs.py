@@ -70,15 +70,21 @@ def detect_grid_lines(image,  direction = 0):
     start_point_h = int(detect_start_point(h_maxes[1],h_maxes[2],h_maxes[3]))
     start_point_w = int(detect_start_point(w_maxes[1],w_maxes[2],w_maxes[3]))
     
+    if direction == 1 or direction == 2:
+        if direction == 1:
+            params = get_cell_parametrs(w_maxes[1:] )
+        elif direction == 2:
+            params = get_cell_parametrs(h_maxes[1:] )  
+            
+        width = params["cell_width"]
+        border = params["border"]        
+    
     if direction == 0:
-        params = get_cell_parametrs(w_maxes[1:] + h_maxes[1:])
-    if direction == 1:
-        params = get_cell_parametrs(w_maxes[1:] )
-    if direction == 2:
-        params = get_cell_parametrs(h_maxes[1:] )
+        params1 = get_cell_parametrs(w_maxes[1:] )
+        params2 = get_cell_parametrs(h_maxes[1:] )
+        width = (params1["cell_width"]+ params2["cell_width"])//2
+        border = (params1["border"]+ params2["border"])//2
         
-    width = params["cell_width"]
-    border = params["border"]        
 #        'start_h': start_point_h, 'start_w': start_point_w, 'width_lines': w_maxes, 'height_lines': h_maxes, 
 #               'cell_width':width, 'border':border
     return [start_point_h, start_point_w,  

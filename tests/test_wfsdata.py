@@ -1,12 +1,9 @@
 import pytest
-import requests
-import h5py
-import matplotlib.pyplot as plt
 
-import sys
-sys.path.append('../wfslib')
+import numpy as np
+from hypothesis import strategies as st
+from hypothesis.extra.numpy import arrays as st_arrays
 
-from wfs import WFSData
 from geometry import Geometry
 import numpy as np
 import time
@@ -43,4 +40,18 @@ if __name__ == "__main__":
     main()
 
 
-    
+# def test_wfsdata_cls(load_examples):
+#     data = load_examples
+#
+#     for _ in range(len(data)):
+#         image = data[data.files[_]]
+#
+#         geom = Geometry(image, 'auto')
+#
+#         wfs = WFSData(source=image)
+#
+#         # wfs.save(sourse)
+#         wfs.reference = 1
+#
+#         offset = list(wfs[0]['ofsets'][4])
+#         assert offset != None

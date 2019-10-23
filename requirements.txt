@@ -1,0 +1,11 @@
+h5py==2.9.0
+hypothesis==4.24.3
+mypy==0.701
+numpy==1.14.3
+pycodestyle==2.5.0
+pytest==4.6.3
+scikit-image==0.15.0
+
+
+
+

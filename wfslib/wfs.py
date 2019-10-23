@@ -61,7 +61,12 @@ class WFSData():
                 raise WFSError("TypeError: file is not a hdf5-file format type."%source)
             h5f = h5py.File(source,'r')
             if self.dataset_name in h5f.keys():
-                self._source = h5f[self.dataset_name][:]
+                print(len(h5f[self.dataset_name].shape))
+                if len(h5f[self.dataset_name].shape)>2:
+                    self._source = h5f[self.dataset_name][:]
+                else:
+                    self._source = numpy.expand_dims(h5f[self.dataset_name], axis=0)
+            plt.imshow(self._source[0])
             if ("cell_width" in h5f.keys() and 
                             "border" in h5f.keys() and 
                             "start_point" in h5f.keys()) :
@@ -160,3 +165,8 @@ class WFSData():
                      [x3, x1], [y3, y1],color = color)
       
         plt.show()
+        
+    def offsets(self):
+        for i in range(len(self.geometry.geometry)):
+             ofst = self._frame.get_offset(i)
+        return

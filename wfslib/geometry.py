@@ -7,7 +7,7 @@ Created on Fri Jun 28 13:48:30 2019
 
 import pickle 
 import numpy as np
-from _wfs import make_gridpoints, points2grid, detect_grid_lines
+from ._wfs import make_gridpoints, points2grid, detect_grid_lines
 import matplotlib.pyplot as plt
 import matplotlib.lines as lines
 from typing import Union

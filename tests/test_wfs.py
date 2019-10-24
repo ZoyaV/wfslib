@@ -1,6 +1,6 @@
 import pytest  # type: ignore
 import numpy as np  # type: ignore
-import wfslib._wfs as _wfs  # type: ignore
+from wfslib import _wfs  # type: ignore
 from typing import NewType
 
 # NPImage = NewType('NPImage', np.lib.npyio.NpzFile)

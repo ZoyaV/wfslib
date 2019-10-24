@@ -6,6 +6,6 @@ import numpy as np  # type: ignore
 
 @pytest.fixture(scope="function")
 def load_examples() -> np.lib.npyio.NpzFile:
-    data = np.load('data/images.npz')
+    data = np.load('tests/data/images.npz')
     print(type(data))
     return data

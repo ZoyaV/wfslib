@@ -4,12 +4,10 @@ import numpy as np
 from hypothesis import strategies as st
 from hypothesis.extra.numpy import arrays as st_arrays
 
-from geometry import Geometry
+from wfslib.geometry import Geometry
+from wfslib.wfs import WFSData
 import numpy as np
 import time
-
-def test_wfsdata_cls():
-    assert False
 
 def main():
     

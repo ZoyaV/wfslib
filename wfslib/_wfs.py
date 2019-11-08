@@ -1,7 +1,22 @@
 import pywt
 import numpy as np
 from collections import Counter
+import math
 
+
+def rotate2d(point,origin,degrees):
+    """
+    A rotation function that rotates a point around a point
+    to rotate around the origin use [0,0]
+    """
+    x = point[0] - origin[0]
+    yorz = point[1] - origin[1]
+    newx = (x*math.cos(math.radians(degrees))) - (yorz*math.sin(math.radians(degrees)))
+    newyorz = (x*math.sin(math.radians(degrees))) + (yorz*math.cos(math.radians(degrees)))
+    newx += origin[0]
+    newyorz += origin[1] 
+
+    return int(newx+(0.5)*(newx/abs(newx))), int(newyorz+(0.5)*(newyorz/abs(newyorz)))
 
 def qualitative_sub(cell):
         t = 140
@@ -106,7 +121,7 @@ def chose_optimal_interval(cd, end = 3):
 
 def grid_cell_parametrs(img_grid):
     w = pywt.Wavelet('db2')
-    max_lvl = pywt.dwt_max_level(len(img_grid), w.dec_len)
+    max_lvl = pywt.dwt_max_level(len(img_grid), w.dec_len)-1
     coeffs = pywt.wavedec(np.mean(img_grid,axis = 0), 'db2', level = max_lvl)   
     ca, cd = coeffs[0],coeffs[1:]  
     max_interval_h, min_interval_h = chose_optimal_interval(cd)
@@ -155,7 +170,7 @@ def detect_grid_lines(image,  direction = 0):
 #               'cell_width':width, 'border':border
     return [start_point_h, start_point_w,  
             w_maxes, h_maxes, 
-            width, border/1.1]
+            width, border]
     
 def make_gridpoints(image, cell_width, border, start_point ):
     x, y = start_point
@@ -204,3 +219,15 @@ def points2grid(x_points, y_points):
             cells.append(cell)
     
     return cells    
+
+def rotate(cells, origin, degrees):
+    for i in range(len(cells)):
+        cell = list(zip(*cells[i]))
+        X = []
+        Y = []
+        for j in range(len(cell)):
+            x,y = rotate2d(cell[j],origin,degrees)
+            X.append(x)
+            Y.append(y)
+        cells[i] = [tuple(X), tuple(Y)]
+    return cells

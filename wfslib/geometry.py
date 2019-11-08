@@ -6,8 +6,8 @@ Created on Fri Jun 28 13:48:30 2019
 """
 
 import pickle 
-import numpy as np
-from ._wfs import make_gridpoints, points2grid, detect_grid_lines
+import numpy as np 
+from ._wfs import make_gridpoints, points2grid, detect_grid_lines, rotate
 import matplotlib.pyplot as plt
 import matplotlib.lines as lines
 from typing import Union
@@ -15,11 +15,12 @@ from typing import Union
 
 class Geometry():    
     def __init__(self, image: np.ndarray, make_func = 'not_auto', border = 0, 
-                         cell_width = 0, start_point = [0,0]):
+                         cell_width = 0, start_point = [0,0], rotate = 0):
         self.image = image
         self._border = border
         self._cell_width = cell_width
         self._start_point = start_point
+        self._rotate = rotate
         self._cells = []
         
         if make_func.lower() == 'auto':
@@ -32,6 +33,8 @@ class Geometry():
     def __make(self) -> None:
         points = make_gridpoints(self.image, self._cell_width, self._border, self._start_point )
         self._cells = points2grid(*points)
+        center = self.image.shape[0]//2, self.image.shape[1]//2
+        self._cells = rotate(self._cells, center, self._rotate)
         return 
     
     def auto_make(self, diraction = 0) -> dict:
@@ -48,7 +51,7 @@ class Geometry():
         self.image = image
         
     def set_options(self, border = None, cell_width = None, 
-                      shift = None) -> None:
+                      shift = None, swap = False, rotate = 0) -> None:
         if border is not None:
             self._border = border
         if cell_width is not None:
@@ -56,7 +59,9 @@ class Geometry():
         if shift is not None:
             self._start_point[0] += shift[0]
             self._start_point[1] += shift[1]
-        
+        if swap:
+            self._border,  self._cell_width  =  self._cell_width, self._border 
+        self._rotate = rotate
         self.__make()
         
     @property

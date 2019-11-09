@@ -7,21 +7,23 @@ Created on Fri Jun 28 13:48:30 2019
 
 import pickle 
 import numpy as np 
-from ._wfs import make_gridpoints, points2grid, detect_grid_lines, rotate
+from ._wfs import make_gridpoints, points2grid, detect_grid_lines
 import matplotlib.pyplot as plt
 import matplotlib.lines as lines
+from skimage.transform import rotate
 from typing import Union
 
 
 class Geometry():    
     def __init__(self, image: np.ndarray, make_func = 'not_auto', border = 0, 
-                         cell_width = 0, start_point = [0,0], rotate = 0):
+                         cell_width = 0, start_point = [0,0], angle = 0):
         self.image = image
         self._border = border
         self._cell_width = cell_width
         self._start_point = start_point
-        self._rotate = rotate
+    
         self._cells = []
+        self._rotate = angle
         
         if make_func.lower() == 'auto':
             self.auto_make()
@@ -31,10 +33,12 @@ class Geometry():
             pass        
     
     def __make(self) -> None:
+        self.image = rotate(self.image, -self._rotate, resize=False, center=None, order=1,
+                 mode='constant', cval=0, clip=True, preserve_range=False)
         points = make_gridpoints(self.image, self._cell_width, self._border, self._start_point )
         self._cells = points2grid(*points)
-        center = self.image.shape[0]//2, self.image.shape[1]//2
-        self._cells = rotate(self._cells, center, self._rotate)
+        #center = self.image.shape[0]//2, self.image.shape[1]//2
+        #self._cells = rotate(self._cells, center, self._rotate)
         return 
     
     def auto_make(self, diraction = 0) -> dict:

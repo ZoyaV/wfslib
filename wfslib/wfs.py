@@ -4,8 +4,10 @@ from pathlib import Path
 from warnings import warn
 from ._wfs import qualitative_sub
 from skimage.feature import register_translation
+from skimage.transform import rotate
 from typing import Union
 from .geometry import Geometry
+from skimage.transform import rotate
 
 import pickle
 import matplotlib.pyplot as plt
@@ -19,8 +21,8 @@ class WFSError(Exception):
 
 class Frame():
     def __init__(self, image, geometry, reference):
-        self.image = image
         self._geometry = geometry
+        self.image = image
         self.reference = reference
         
     def __getitem__(self, sub_number: int) -> numpy.ndarray: 
@@ -32,11 +34,13 @@ class Frame():
         return len(_geometry.geometry)
     
     def get_offset(self, sub_number):
+        
         return register_translation(self.__getitem__(self.reference),
                              self.__getitem__(sub_number))[0]
         
     def set_image(self, image):
-        self.image = image
+        self.image = rotate(image, -self._geometry._rotate, resize=False, center=None, order=1,
+                 mode='constant', cval=0, clip=True, preserve_range=False)
     
 
 class WFSData():
@@ -52,6 +56,7 @@ class WFSData():
         self.__load_geometry()
         
         self._frame = Frame(self._source[0], self.geometry, self._reference)
+        
 
     def __load_source(self, source) -> None:
         if isinstance(source, str):
@@ -130,8 +135,10 @@ class WFSData():
 
     def show_geometry(self, show_type = "numered") -> None:
         self._frame.set_image(self._source[0])
-        plt.figure(figsize = (8,8))         
-        plt.imshow(self._source[0])
+        plt.figure(figsize = (10,10))   
+        img_to_show = rotate(self._source[0], -self.geometry._rotate, resize=False, center=None, order=1,
+                 mode='constant', cval=0, clip=True, preserve_range=False) 
+        plt.imshow(img_to_show)
         plt.title(show_type+" image")
         sx = 1
         sy = 11

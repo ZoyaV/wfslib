@@ -18,15 +18,9 @@ def rotate2d(point,origin,degrees):
 
     return int(newx+(0.5)*(newx/abs(newx))), int(newyorz+(0.5)*(newyorz/abs(newyorz)))
 
-def qualitative_sub(cell):
-        t = 140
-        arr_good = cell[cell>=t].ravel().shape[0]
-        arr_bad = cell[cell<t].ravel().shape[0]
-        if arr_bad*1.2 > arr_good:
-            return 0
-        else:
-            return 1 
-        
+def qualitative_sub(cell, std, max_val):
+        return np.max(cell) > std
+
 def moving_average(a, n=3) :
     ret = np.cumsum(a, dtype=float)
     ret[n:] = ret[n:] - ret[:-n]

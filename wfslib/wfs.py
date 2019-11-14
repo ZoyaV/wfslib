@@ -30,11 +30,20 @@ class Frame():
         sx, ssx , sy, ssy = list(map(int,[cell[0][0], cell[0][1],
                                        cell[1][0], cell[1][2]]))           
         return self.image[sx:ssx,sy:ssy]
-    def __len__(self):
-        return len(_geometry.geometry)
     
-    def get_offset(self, sub_number):
+    def __len__(self):
+        return len(self._geometry.geometry)
+    
+    def cell_quality(self, i:int)->bool:
+        cell = self._geometry.geometry[i]
+        sx, ssx , sy, ssy = list(map(int,[cell[0][0], cell[0][1],
+                                       cell[1][0], cell[1][2]]))
+        return qualitative_sub(self.image[sx:ssx,sy:ssy], 
+                               numpy.std(self.image),
+                               numpy.max(self.image))
         
+    
+    def get_offset(self, sub_number):        
         return register_translation(self.__getitem__(self.reference),
                              self.__getitem__(sub_number))[0]
         
@@ -145,7 +154,7 @@ class WFSData():
         for i in range(len(self.geometry.geometry)):
             weight = 'normal'
             fontsize = 8
-            if qualitative_sub(self._frame[i]):
+            if self._frame.cell_quality(i):
                 color = '#f6416e'
             else:
                 color = 'c'

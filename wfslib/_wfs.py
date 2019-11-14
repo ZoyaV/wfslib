@@ -1,19 +1,45 @@
+import pywt
 import numpy as np
+from collections import Counter
+import math
 
 
-def qualitative_sub(cell):
-        t = 140
-        arr_good = cell[cell>=t].ravel().shape[0]
-        arr_bad = cell[cell<t].ravel().shape[0]
-        if arr_bad*1.2 > arr_good:
-            return 0
-        else:
-            return 1 
-        
+def rotate2d(point,origin,degrees):
+    """
+    A rotation function that rotates a point around a point
+    to rotate around the origin use [0,0]
+    """
+    x = point[0] - origin[0]
+    yorz = point[1] - origin[1]
+    newx = (x*math.cos(math.radians(degrees))) - (yorz*math.sin(math.radians(degrees)))
+    newyorz = (x*math.sin(math.radians(degrees))) + (yorz*math.cos(math.radians(degrees)))
+    newx += origin[0]
+    newyorz += origin[1] 
+
+    return int(newx+(0.5)*(newx/abs(newx))), int(newyorz+(0.5)*(newyorz/abs(newyorz)))
+
+def qualitative_sub(cell, std, max_val):
+        return np.max(cell) > std
+
 def moving_average(a, n=3) :
     ret = np.cumsum(a, dtype=float)
     ret[n:] = ret[n:] - ret[:-n]
     return ret[n - 1:] / n
+
+def get_interval(extremums):
+    extremums = sorted(extremums)
+    widths = []
+    for i in range(1,len(extremums)):
+        widths.append(extremums[i]-extremums[i-1])
+    return widths
+
+def get_extrememums(signal, shifting = 10):
+    sort_sig =moving_average(sorted(signal), shifting)
+
+    std = np.std(sort_sig)
+    std_max = np.mean([std, np.max(sort_sig)])
+    std_min = np.mean([-std, np.min(sort_sig)])
+    return std_max, std_min
         
 def clear_extremums(maxes):
         main_points = []
@@ -55,6 +81,68 @@ def get_cell_parametrs(lines):
 
     return {"cell_width":max(d2,d1), "border":min(d2,d1)} 
 
+
+def chose_optimal_interval(cd, end = 3): 
+    cur_lvl = len(cd)-1
+    zoom = 2
+    max_interval = []
+    min_interval = []
+    while cur_lvl != end:
+        std_max,  std_min= get_extrememums(cd[cur_lvl], 15)
+        mask1 = list(np.where(cd[cur_lvl] > std_max)[0])
+        mask2 = list(np.where(cd[cur_lvl] < std_min)[0])
+        I = np.asarray(get_interval(mask1 + mask2)) #все найденные интервалы 
+        
+        if len(set(I))<8:
+            std = np.std(I)
+            max_intervals = np.where(I>std)[0]
+            big_width = np.mean(I[I>std])
+    
+            c = []
+
+            for i in range(1,len(max_intervals)): #нахождение минимального интервала
+                c+= [sum(I[max_intervals[i-1]+1:max_intervals[i]])]
+            min_width = np.median(c)
+            max_interval.append(big_width*zoom)
+            min_interval.append(min_width*zoom)
+          #  print(big_width*zoom, min_width*zoom)
+        else:
+            pass
+        zoom*=2
+        cur_lvl-=1
+    return (max_interval, min_interval)   
+
+
+def grid_cell_parametrs(img_grid):
+    w = pywt.Wavelet('db2')
+    max_lvl = pywt.dwt_max_level(len(img_grid), w.dec_len)-1
+    coeffs = pywt.wavedec(np.mean(img_grid,axis = 0), 'db2', level = max_lvl)   
+    ca, cd = coeffs[0],coeffs[1:]  
+    max_interval_h, min_interval_h = chose_optimal_interval(cd)
+    
+    w = pywt.Wavelet('db2')
+    max_lvl = pywt.dwt_max_level(len(img_grid), w.dec_len)
+    coeffs = pywt.wavedec(np.mean(img_grid,axis = 1), 'db2', level = max_lvl)   
+    ca, cd = coeffs[0],coeffs[1:]  
+    max_interval_w, min_interval_w = chose_optimal_interval(cd)
+    
+    max_interval = max_interval_h + max_interval_w
+    min_interval = min_interval_h + min_interval_w
+    
+    max_v = Counter(max_interval).most_common(1)[0]
+    min_v = Counter(min_interval).most_common(1)[0]
+    
+    if min_v[1]==1:
+        min_v = np.median(min_interval)
+    else:
+        min_v = min_v[0]
+    if max_v[1]==1:
+        max_v = np.median(max_interval)
+    else:
+        max_v = max_v[0]
+    return max_v, min_v
+
+
 def detect_grid_lines(image,  direction = 0):
     h_line = np.median(image, 0)
     w_line = np.median(image, 1)
@@ -70,20 +158,7 @@ def detect_grid_lines(image,  direction = 0):
     start_point_h = int(detect_start_point(h_maxes[1],h_maxes[2],h_maxes[3]))
     start_point_w = int(detect_start_point(w_maxes[1],w_maxes[2],w_maxes[3]))
     
-    if direction == 1 or direction == 2:
-        if direction == 1:
-            params = get_cell_parametrs(w_maxes[1:] )
-        elif direction == 2:
-            params = get_cell_parametrs(h_maxes[1:] )  
-            
-        width = params["cell_width"]
-        border = params["border"]        
-    
-    if direction == 0:
-        params1 = get_cell_parametrs(w_maxes[1:] )
-        params2 = get_cell_parametrs(h_maxes[1:] )
-        width = (params1["cell_width"]+ params2["cell_width"])//2
-        border = (params1["border"]+ params2["border"])//2
+    width, border = grid_cell_parametrs(image)
         
 #        'start_h': start_point_h, 'start_w': start_point_w, 'width_lines': w_maxes, 'height_lines': h_maxes, 
 #               'cell_width':width, 'border':border
@@ -138,3 +213,15 @@ def points2grid(x_points, y_points):
             cells.append(cell)
     
     return cells    
+
+def rotate(cells, origin, degrees):
+    for i in range(len(cells)):
+        cell = list(zip(*cells[i]))
+        X = []
+        Y = []
+        for j in range(len(cell)):
+            x,y = rotate2d(cell[j],origin,degrees)
+            X.append(x)
+            Y.append(y)
+        cells[i] = [tuple(X), tuple(Y)]
+    return cells

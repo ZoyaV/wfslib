@@ -1,7 +1,7 @@
 import pytest # type: ignore
 from hypothesis import given, strategies as st, settings, Verbosity, find
 from hypothesis import assume
-from geometry import Geometry
+from wfslib.geometry import Geometry
 
 
 @given(st.text(max_size=10), st.integers(), st.integers(), st.integers(),

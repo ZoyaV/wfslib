@@ -20,19 +20,28 @@ class WFSError(Exception):
     pass
 
 class Frame():
-    def __init__(self, image, geometry, reference):
+    def __init__(self, image, geometry, reference, mask = None):
         self._geometry = geometry
         self.image = image
         self.reference = reference
         
+        self.mask = mask
+
+        
     def __getitem__(self, sub_number: int) -> numpy.ndarray: 
-        cell = self._geometry.geometry[sub_number]
+        if not isinstance(self.mask, type(None)):
+            cell = self._geometry.geometry[self.mask][sub_number]
+        else:
+             cell = self._geometry.geometry[sub_number]
         sx, ssx , sy, ssy = list(map(int,[cell[0][0], cell[0][1],
                                        cell[1][0], cell[1][2]]))           
         return self.image[sx:ssx,sy:ssy]
     
     def __len__(self):
-        return len(self._geometry.geometry)
+        if not isinstance(self.mask, type(None)):
+            return len(self._geometry.geometry[self.mask])
+        else:
+            return len(self._geometry.geometry)
     
     def cell_quality(self, i:int)->bool:
         cell = self._geometry.geometry[i]
@@ -64,7 +73,10 @@ class WFSData():
         self.__load_source(source)
         self.__load_geometry()
         
+        
+        self._mask = False
         self._frame = Frame(self._source[0], self.geometry, self._reference)
+        self.quality_mask = []
         
 
     def __load_source(self, source) -> None:
@@ -119,7 +131,11 @@ class WFSData():
     def __iter__(self):
         raise NotImplementedError()  
 
-    def __getitem__(self, frame_number: int) -> dict:   
+    def __getitem__(self, frame_number: int) -> dict: 
+        if self._mask == True:
+            self._frame.mask = self.quality_mask
+        else:
+            self._frame.mask = None
         self._frame.set_image(self._source[frame_number])
         return self._frame
     
@@ -141,6 +157,28 @@ class WFSData():
     def reference(self, ref_num):
         self._reference = ref_num
         self._frame.reference = self._reference
+        
+    @property
+    def domask(self):
+        return self._mask
+    
+    @domask.setter
+    def domask(self, state) -> bool:
+        self._mask = state
+        if self._mask:
+            self.quality_mask = self.__get_quality_mask()
+        return 
+    
+    def __get_quality_mask(self):
+        geometry = self.geometry.geometry
+        mask = numpy.zeros(geometry.shape[0])
+        mask = mask.astype(bool)
+        for i in range(len(geometry)):
+             if self._frame.cell_quality(i):
+                 mask[i] = True 
+             else:
+                 mask[i] = False
+        return mask
 
     def show_geometry(self, show_type = "numered") -> None:
         self._frame.set_image(self._source[0])
@@ -151,18 +189,23 @@ class WFSData():
         plt.title(show_type+" image")
         sx = 1
         sy = 11
-        for i in range(len(self.geometry.geometry)):
+        if self._mask:
+            geometry = self.geometry.geometry[self.quality_mask]
+        else:
+            geometry = self.geometry.geometry
+        for i in range(len(geometry)):
+
             weight = 'normal'
             fontsize = 8
-            if self._frame.cell_quality(i):
+            if self._mask or self._frame.cell_quality(i):
                 color = '#f6416e'
             else:
                 color = 'c'
             if i == self._reference:
                 color = 'r'
                 weight = 'bold'
-            x0, x1, x2, x3 = self.geometry.geometry[i][1]
-            y0, y1, y2, y3 = self.geometry.geometry[i][0]
+            x0, x1, x2, x3 = geometry[i][1]
+            y0, y1, y2, y3 = geometry[i][0]
             
             text = ""
             if show_type == "numered":

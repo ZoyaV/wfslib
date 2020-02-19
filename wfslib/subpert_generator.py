@@ -14,20 +14,14 @@ from random import randint
 class WFSGenerationError(Exception):
     pass
 
-def drow_circle(r, offset = [0,0], edit = 8, sigma = 1):
+def drow_circle(r, offset = [0,0], sigma = 1):
     
     width, height = r*2, r*2
     img = np.zeros((width, height))
     X = np.arange(width).reshape(width,1)
     Y = np.arange(height).reshape(1,height)
-    
-   # print("e = ",  r/sigma)
-    if r/sigma <= 1 * r:
-        r-= edit
-    else:
-        r-=edit*0.2
-   # print(r)
-    mask_2 = ((X - offset[0]- width//2) ** 2 + (Y  -offset[1]- height//2)**2) < (r)**2
+
+    mask_2 = ((X - offset[0]- width//2) ** 2 + (Y  -offset[1]- height//2)**2) < (1)**2
     img[mask_2] = 1    
     img_smooth = gaussian(img, sigma)
     
@@ -47,7 +41,7 @@ def generate_offsets(width, height, deviant = 5 ):
             offsets[i,j,:]= np.asarray([x,y])
     return offsets
 
-def draw_subs(offsets, R, border, edit = 20, sigma = 12):
+def draw_subs(offsets, R, border, sigma = 12):
     countw, counth = offsets.shape[:2]
     
     width = (R*2 + border) * countw
@@ -58,23 +52,27 @@ def draw_subs(offsets, R, border, edit = 20, sigma = 12):
         for j in range(counth):
             ci = i*(R*2+border) + border//2
             cj = j*(R*2+border) + border//2
-            circle_pattern = drow_circle(R, offsets[i,j], edit = edit, sigma = sigma)
+            circle_pattern = drow_circle(R, offsets[i,j], sigma = sigma)
             img[ci:ci+R*2,cj:cj+R*2] = circle_pattern.copy()
             
     return img                   
             
     
 if __name__ == "__main__":
+    
     R = 100
     border = 10
+    sigma = 10
     offsets = generate_offsets(8, 8)
-    img = draw_subs(offsets, R, border, edit = 45,  sigma = 16)
+    img = draw_subs(offsets, R, border, sigma = sigma)
 
 #            
     try:
+        print("kek")
         plt.figure(figsize = (10,10))
         plt.imshow(img)
     except:
+        print("lol")
         pass
 #        
         

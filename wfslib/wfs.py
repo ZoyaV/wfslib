@@ -69,6 +69,7 @@ class WFSData():
         self._reference = 81
         self._source = None
         self.geometry = None
+        self.h5f_stream = None
 
         self.__load_source(source)
         self.__load_geometry()
@@ -85,28 +86,28 @@ class WFSData():
                 raise WFSError("NameError: not file or directory with name %s."%source)
             if "h5" not in source:
                 raise WFSError("TypeError: file is not a hdf5-file format type."%source)
-            h5f = h5py.File(source,'r')
-            if self.dataset_name in h5f.keys():
-                print(len(h5f[self.dataset_name].shape))
-                if len(h5f[self.dataset_name].shape)>2:
-                    self._source = h5f[self.dataset_name][:]
+            self.h5f_stream = h5py.File(source,'r')
+            if self.dataset_name in  self.h5f_stream.keys():
+                print(len( self.h5f_stream[self.dataset_name].shape))
+                if len( self.h5f_stream[self.dataset_name].shape)>2:
+                    self._source = self.h5f_stream[self.dataset_name]
                 else:
-                    self._source = numpy.expand_dims(h5f[self.dataset_name], axis=0)
-            plt.imshow(self._source[0])
-            if ("cell_width" in h5f.keys() and 
-                            "border" in h5f.keys() and 
-                            "start_point" in h5f.keys()) :
-                cell_width = h5f["cell_width"][0]
-                border = h5f["border"][0]
-                start_point = h5f["start_point"][0]
+                    self._source = numpy.expand_dims(self.h5f_stream[self.dataset_name], axis=0)
+            #plt.imshow(self._source[0])
+            if ("cell_width" in self.h5f_stream.keys() and 
+                            "border" in self.h5f_stream.keys() and 
+                            "start_point" in self.h5f_stream.keys()) :
+                cell_width = self.h5f_stream["cell_width"][0]
+                border = self.h5f_stream["border"][0]
+                start_point = self.h5f_stream["start_point"][0]
                 self.geometry = Geometry(image = self._source[0], 
                                          cell_width = cell_width, 
                                          border = border,
                                          start_point = start_point)
-            h5f.close() 
+          #  h5f.close() 
         if isinstance(source, h5py.File):
             if self.dataset_name in source.keys():
-                self._source = source[self.dataset_name][:]
+                self._source = source[self.dataset_name]
             if  ("cell_width" in source.keys() and 
                             "border" in source.keys() and 
                             "start_point" in source.keys()):
@@ -121,7 +122,13 @@ class WFSData():
                 raise WFSError('Сan not read the file. Be sure to have the keys "date" for data WFS.')                
         if isinstance(source, numpy.ndarray):
             self._source = source
+            if len(source.shape) == 2:
 
+                self._source =  self._source.reshape(1,self._source.shape[0], self._source.shape[1])
+    
+    def close_stream(self):
+        self.h5f_stream.close()
+        
     def __load_geometry(self) -> None:
         if not isinstance(self.geometry, type(None)):
             return
@@ -159,11 +166,11 @@ class WFSData():
         self._frame.reference = self._reference
         
     @property
-    def domask(self):
+    def good_only(self):
         return self._mask
     
-    @domask.setter
-    def domask(self, state) -> bool:
+    @good_only.setter
+    def good_only(self, state) -> bool:
         self._mask = state
         if self._mask:
             self.quality_mask = self.__get_quality_mask()
@@ -212,10 +219,10 @@ class WFSData():
                 text = "%d"%i
             elif show_type == "offsets":
                 ofst = self._frame.get_offset(i)
-                text = "%.1f, \n %.1f"% (ofst[0], ofst[1])
+                text = "%.1f, \n %.1f"% (-ofst[0], -ofst[1])
                 fontsize = 7
                 sx = 2
-                sy = 25
+                sy = -2
                 
             plt.text(x0+sx, y0+sy, text, color = color, fontsize = fontsize, weight=weight)
             plt.plot([x0, x1], [y0, y1], 
@@ -226,6 +233,8 @@ class WFSData():
         plt.show()
         
     def offsets(self):
+        offsets = []
         for i in range(len(self.geometry.geometry)):
-             ofst = self._frame.get_offset(i)
-        return
+             ofst = list(self._frame.get_offset(i))
+             offsets.append([-ofst[0], -ofst[1]])
+        return offsets

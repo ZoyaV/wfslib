@@ -20,19 +20,28 @@ class WFSError(Exception):
     pass
 
 class Frame():
-    def __init__(self, image, geometry, reference):
+    def __init__(self, image, geometry, reference, mask = None):
         self._geometry = geometry
         self.image = image
         self.reference = reference
         
+        self.mask = mask
+
+        
     def __getitem__(self, sub_number: int) -> numpy.ndarray: 
-        cell = self._geometry.geometry[sub_number]
+        if not isinstance(self.mask, type(None)):
+            cell = self._geometry.geometry[self.mask][sub_number]
+        else:
+             cell = self._geometry.geometry[sub_number]
         sx, ssx , sy, ssy = list(map(int,[cell[0][0], cell[0][1],
                                        cell[1][0], cell[1][2]]))           
         return self.image[sx:ssx,sy:ssy]
     
     def __len__(self):
-        return len(self._geometry.geometry)
+        if not isinstance(self.mask, type(None)):
+            return len(self._geometry.geometry[self.mask])
+        else:
+            return len(self._geometry.geometry)
     
     def cell_quality(self, i:int)->bool:
         cell = self._geometry.geometry[i]
@@ -60,11 +69,15 @@ class WFSData():
         self._reference = 81
         self._source = None
         self.geometry = None
+        self.h5f_stream = None
 
         self.__load_source(source)
         self.__load_geometry()
         
+        
+        self._mask = False
         self._frame = Frame(self._source[0], self.geometry, self._reference)
+        self.quality_mask = []
         
 
     def __load_source(self, source) -> None:
@@ -73,28 +86,28 @@ class WFSData():
                 raise WFSError("NameError: not file or directory with name %s."%source)
             if "h5" not in source:
                 raise WFSError("TypeError: file is not a hdf5-file format type."%source)
-            h5f = h5py.File(source,'r')
-            if self.dataset_name in h5f.keys():
-                print(len(h5f[self.dataset_name].shape))
-                if len(h5f[self.dataset_name].shape)>2:
-                    self._source = h5f[self.dataset_name][:]
+            self.h5f_stream = h5py.File(source,'r')
+            if self.dataset_name in  self.h5f_stream.keys():
+                print(len( self.h5f_stream[self.dataset_name].shape))
+                if len( self.h5f_stream[self.dataset_name].shape)>2:
+                    self._source = self.h5f_stream[self.dataset_name]
                 else:
-                    self._source = numpy.expand_dims(h5f[self.dataset_name], axis=0)
-            plt.imshow(self._source[0])
-            if ("cell_width" in h5f.keys() and 
-                            "border" in h5f.keys() and 
-                            "start_point" in h5f.keys()) :
-                cell_width = h5f["cell_width"][0]
-                border = h5f["border"][0]
-                start_point = h5f["start_point"][0]
+                    self._source = numpy.expand_dims(self.h5f_stream[self.dataset_name], axis=0)
+            #plt.imshow(self._source[0])
+            if ("cell_width" in self.h5f_stream.keys() and 
+                            "border" in self.h5f_stream.keys() and 
+                            "start_point" in self.h5f_stream.keys()) :
+                cell_width = self.h5f_stream["cell_width"][0]
+                border = self.h5f_stream["border"][0]
+                start_point = self.h5f_stream["start_point"][0]
                 self.geometry = Geometry(image = self._source[0], 
                                          cell_width = cell_width, 
                                          border = border,
                                          start_point = start_point)
-            h5f.close() 
+          #  h5f.close() 
         if isinstance(source, h5py.File):
             if self.dataset_name in source.keys():
-                self._source = source[self.dataset_name][:]
+                self._source = source[self.dataset_name]
             if  ("cell_width" in source.keys() and 
                             "border" in source.keys() and 
                             "start_point" in source.keys()):
@@ -109,7 +122,13 @@ class WFSData():
                 raise WFSError('Сan not read the file. Be sure to have the keys "date" for data WFS.')                
         if isinstance(source, numpy.ndarray):
             self._source = source
+            if len(source.shape) == 2:
 
+                self._source =  self._source.reshape(1,self._source.shape[0], self._source.shape[1])
+    
+    def close_stream(self):
+        self.h5f_stream.close()
+        
     def __load_geometry(self) -> None:
         if not isinstance(self.geometry, type(None)):
             return
@@ -119,7 +138,11 @@ class WFSData():
     def __iter__(self):
         raise NotImplementedError()  
 
-    def __getitem__(self, frame_number: int) -> dict:   
+    def __getitem__(self, frame_number: int) -> dict: 
+        if self._mask == True:
+            self._frame.mask = self.quality_mask
+        else:
+            self._frame.mask = None
         self._frame.set_image(self._source[frame_number])
         return self._frame
     
@@ -141,6 +164,28 @@ class WFSData():
     def reference(self, ref_num):
         self._reference = ref_num
         self._frame.reference = self._reference
+        
+    @property
+    def good_only(self):
+        return self._mask
+    
+    @good_only.setter
+    def good_only(self, state) -> bool:
+        self._mask = state
+        if self._mask:
+            self.quality_mask = self.__get_quality_mask()
+        return 
+    
+    def __get_quality_mask(self):
+        geometry = self.geometry.geometry
+        mask = numpy.zeros(geometry.shape[0])
+        mask = mask.astype(bool)
+        for i in range(len(geometry)):
+             if self._frame.cell_quality(i):
+                 mask[i] = True 
+             else:
+                 mask[i] = False
+        return mask
 
     def show_geometry(self, show_type = "numered") -> None:
         self._frame.set_image(self._source[0])
@@ -151,28 +196,33 @@ class WFSData():
         plt.title(show_type+" image")
         sx = 1
         sy = 11
-        for i in range(len(self.geometry.geometry)):
+        if self._mask:
+            geometry = self.geometry.geometry[self.quality_mask]
+        else:
+            geometry = self.geometry.geometry
+        for i in range(len(geometry)):
+
             weight = 'normal'
             fontsize = 8
-            if self._frame.cell_quality(i):
+            if self._mask or self._frame.cell_quality(i):
                 color = '#f6416e'
             else:
                 color = 'c'
             if i == self._reference:
                 color = 'r'
                 weight = 'bold'
-            x0, x1, x2, x3 = self.geometry.geometry[i][1]
-            y0, y1, y2, y3 = self.geometry.geometry[i][0]
+            x0, x1, x2, x3 = geometry[i][1]
+            y0, y1, y2, y3 = geometry[i][0]
             
             text = ""
             if show_type == "numered":
                 text = "%d"%i
             elif show_type == "offsets":
                 ofst = self._frame.get_offset(i)
-                text = "%.1f, \n %.1f"% (ofst[0], ofst[1])
+                text = "%.1f, \n %.1f"% (-ofst[0], -ofst[1])
                 fontsize = 7
                 sx = 2
-                sy = 25
+                sy = -2
                 
             plt.text(x0+sx, y0+sy, text, color = color, fontsize = fontsize, weight=weight)
             plt.plot([x0, x1], [y0, y1], 
@@ -183,6 +233,8 @@ class WFSData():
         plt.show()
         
     def offsets(self):
+        offsets = []
         for i in range(len(self.geometry.geometry)):
-             ofst = self._frame.get_offset(i)
-        return
+             ofst = list(self._frame.get_offset(i))
+             offsets.append([-ofst[0], -ofst[1]])
+        return offsets

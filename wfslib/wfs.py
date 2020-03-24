@@ -49,7 +49,7 @@ class Frame():
                                        cell[1][0], cell[1][2]]))
         return qualitative_sub(self.image[sx:ssx,sy:ssy], 
                                numpy.std(self.image),
-                               numpy.max(self.image))
+                               numpy.mean(self.image))
         
     
     def get_offset(self, sub_number):        
@@ -146,11 +146,12 @@ class WFSData():
         self._frame.set_image(self._source[frame_number])
         return self._frame
     
-    def save(self, name:str) -> None:
-        if "h5" not in name:
-            warn("File name is not hdf5 file format", UserWarning)
-        with h5py.File(name, 'w') as f:
-            f.create_dataset(self.dataset_name, data=self._source)
+    def save(self, name=None) -> None:
+        data_name = name if name is not None else self.dataset_name
+        if "h5" not in data_name:
+            warn("File name is not hdf5 file format", UserWarning)        
+        with h5py.File(data_name, 'a') as f:           
+            #f.create_dataset(self.dataset_name, data=self._source)
             f.create_dataset("cell_width", data= numpy.asarray([self.geometry._cell_width]))
             f.create_dataset("border", data=numpy.asarray([self.geometry._border]))
             f.create_dataset("start_point", data=numpy.asarray([self.geometry._start_point]))

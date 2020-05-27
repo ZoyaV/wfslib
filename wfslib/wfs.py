@@ -21,11 +21,11 @@ class WFSError(Exception):
     pass
 
 class Frame():
-    def __init__(self, image, geometry, reference, mask = None):
+    def __init__(self, image, geometry, reference, mask = None, qualitative_function = None):
         self._geometry = geometry
         self.image = image
         self.reference = reference
-        
+        self.qualitative_function = qualitative_function if qualitative_function else qualitative_sub
         self.mask = mask
 
         
@@ -48,7 +48,7 @@ class Frame():
         cell = self._geometry.geometry[i]
         sx, ssx , sy, ssy = list(map(int,[cell[0][0], cell[0][1],
                                        cell[1][0], cell[1][2]]))
-        return qualitative_sub(self.image[sx:ssx,sy:ssy], 
+        return self.qualitative_function(self.image[sx:ssx,sy:ssy], 
                                numpy.std(self.image),
                                numpy.mean(self.image))
         
@@ -64,20 +64,22 @@ class Frame():
 
 class WFSData():
 
-    def __init__(self, source: DataSources, dataset_name = "data") -> None:
+    def __init__(self, source: DataSources, dataset_name = "data", qualitative_function = None) -> None:
         
         self.dataset_name = dataset_name
         self._reference = 81
         self._source = None
         self.geometry = None
-        self.h5f_stream = None
-
+        self.h5f_stream = None        
+        self._qualitative_function = qualitative_function if qualitative_function else qualitative_sub
+        
         self.__load_source(source)
         self.__load_geometry()
         
         
         self._mask = False
-        self._frame = Frame(self._source[0], self.geometry, self._reference)
+        self._frame = Frame(self._source[0], self.geometry, self._reference,
+                                        qualitative_function = self._qualitative_function)
         self.quality_mask = []
         
 
@@ -157,7 +159,16 @@ class WFSData():
             f.create_dataset("border", data=numpy.asarray([self.geometry._border]))
             f.create_dataset("start_point", data=numpy.asarray([self.geometry._start_point]))
             
-
+    @property
+    def qualitative_function(self):
+        return self._qualitative_function 
+    
+    @qualitative_function.setter
+    def qualitative_function(self, qualitative_function):
+        self._qualitative_function = qualitative_function
+        self._frame.qualitative_function = qualitative_function
+        self.quality_mask = self.__get_quality_mask()
+    
     @property
     def reference(self) -> Union[int, None]:
         return self._reference
@@ -255,11 +266,6 @@ class WFSData():
         return numpy.asarray(subs), ref_sub
     
     def qoffsets(self):
-        #offsets = map(self._frame.get_offset, range(len(self.geometry.geometry)))
         subs, ref_sub = self.__get_all_subaperturs()
-
         offsets = translations(len(subs), numpy.asarray(subs), ref_sub)
-        # for i in range(len(self.geometry.geometry)):
-        #      ofst = list(self._frame.get_offset(i))
-        #      append([-ofst[0], -ofst[1]])
         return offsets

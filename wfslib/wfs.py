@@ -3,6 +3,7 @@ import numpy  # type: ignore
 from pathlib import Path
 from warnings import warn
 from ._wfs import qualitative_sub
+from .shift_detector_numba import translations
 from skimage.feature import register_translation
 from skimage.transform import rotate
 from typing import Union
@@ -139,10 +140,10 @@ class WFSData():
         raise NotImplementedError()  
 
     def __getitem__(self, frame_number: int) -> dict: 
-        if self._mask == True:
-            self._frame.mask = self.quality_mask
-        else:
-            self._frame.mask = None
+#         if self._mask == True:
+#             self._frame.mask = self.quality_mask
+#         else:
+#             self._frame.mask = None
         self._frame.set_image(self._source[frame_number])
         return self._frame
     
@@ -175,6 +176,7 @@ class WFSData():
         self._mask = state
         if self._mask:
             self.quality_mask = self.__get_quality_mask()
+        self.geometry.mask = self.quality_mask
         return 
     
     def __get_quality_mask(self):
@@ -197,14 +199,14 @@ class WFSData():
         plt.title(show_type+" image")
         sx = 1
         sy = 11
-        if self._mask:
-            geometry = self.geometry.geometry[self.quality_mask]
-        else:
-            geometry = self.geometry.geometry
+       # if self._mask:
+          #  geometry = self.geometry.geometry[self.quality_mask]
+      #  else:
+        geometry = self.geometry.geometry
         for i in range(len(geometry)):
 
             weight = 'normal'
-            fontsize = 8
+            fontsize = 12
             if self._mask or self._frame.cell_quality(i):
                 color = '#f6416e'
             else:
@@ -220,10 +222,10 @@ class WFSData():
                 text = "%d"%i
             elif show_type == "offsets":
                 ofst = self._frame.get_offset(i)
-                text = "%.1f, \n %.1f"% (-ofst[0], -ofst[1])
-                fontsize = 7
+                text = "%.1f,  %.1f"% (-ofst[0], -ofst[1])
+                fontsize = 10
                 sx = 2
-                sy = -2
+                sy = 12
                 
             plt.text(x0+sx, y0+sy, text, color = color, fontsize = fontsize, weight=weight)
             plt.plot([x0, x1], [y0, y1], 
@@ -233,9 +235,31 @@ class WFSData():
       
         plt.show()
         
-    def offsets(self):
+    def offsets(self, dformat = 'row'):
         offsets = []
+        
         for i in range(len(self.geometry.geometry)):
              ofst = list(self._frame.get_offset(i))
              offsets.append([-ofst[0], -ofst[1]])
+        offsets = numpy.asarray(offsets)
+        if dformat == 'row':
+            return offsets
+        elif dformat == 'imat':
+            return numpy.append(offsets[:,0],offsets[:,1])
+    
+    def __get_all_subaperturs(self):
+        subs = []
+        for i in range(len(self.geometry.geometry)):
+             subs.append(self._frame[i])
+        ref_sub = self._frame[self.reference]
+        return numpy.asarray(subs), ref_sub
+    
+    def qoffsets(self):
+        #offsets = map(self._frame.get_offset, range(len(self.geometry.geometry)))
+        subs, ref_sub = self.__get_all_subaperturs()
+
+        offsets = translations(len(subs), numpy.asarray(subs), ref_sub)
+        # for i in range(len(self.geometry.geometry)):
+        #      ofst = list(self._frame.get_offset(i))
+        #      append([-ofst[0], -ofst[1]])
         return offsets

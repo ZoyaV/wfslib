@@ -108,7 +108,7 @@ class WFSData():
                                          border = border,
                                          start_point = start_point)
           #  h5f.close() 
-        if isinstance(source, h5py.File):
+        elif isinstance(source, h5py.File):
             if self.dataset_name in source.keys():
                 self._source = source[self.dataset_name]
             if  ("cell_width" in source.keys() and 
@@ -123,11 +123,12 @@ class WFSData():
                                          start_point = start_point) 
             if self.dataset_name not in source.keys():
                 raise WFSError('Сan not read the file. Be sure to have the keys "date" for data WFS.')                
-        if isinstance(source, numpy.ndarray):
+        elif isinstance(source, numpy.ndarray):
             self._source = source
             if len(source.shape) == 2:
-
                 self._source =  self._source.reshape(1,self._source.shape[0], self._source.shape[1])
+        else:
+            raise WFSError("I am so sorry! I cant't open file with this format.")      
     
     def close_stream(self):
         self.h5f_stream.close()
@@ -268,4 +269,4 @@ class WFSData():
     def qoffsets(self):
         subs, ref_sub = self.__get_all_subaperturs()
         offsets = translations(len(subs), numpy.asarray(subs), ref_sub)
-        return offsets
+        return numpy.asarray(sorted(offsets, key = lambda a: a[0]))[:,1:]

@@ -61,6 +61,30 @@ class Frame():
         self.image = rotate(image, -self._geometry._rotate, resize=False, center=None, order=1,
                  mode='constant', cval=0, clip=True, preserve_range=False)
     
+    def offsets(self, dformat = 'row'):
+        offsets = []
+        
+        for i in range(len(self._geometry.geometry)):
+             ofst = list(self.get_offset(i))
+             offsets.append([-ofst[0], -ofst[1]])
+        offsets = numpy.asarray(offsets)
+        if dformat == 'row':
+            return offsets
+        elif dformat == 'imat':
+            return numpy.append(offsets[:,0],offsets[:,1])
+    
+    def __get_all_subaperturs(self):
+        subs = []
+        for i in range(len(self._geometry.geometry)):
+             subs.append(self[i])
+        ref_sub = self[self.reference]
+        return numpy.asarray(subs), ref_sub
+    
+    def qoffsets(self):
+        subs, ref_sub = self.__get_all_subaperturs()
+        offsets = translations(len(subs), numpy.asarray(subs), ref_sub)
+        return numpy.asarray(sorted(offsets, key = lambda a: a[0]))[:,1:]
+    
 
 class WFSData():
 
@@ -247,26 +271,4 @@ class WFSData():
       
         plt.show()
         
-    def offsets(self, dformat = 'row'):
-        offsets = []
-        
-        for i in range(len(self.geometry.geometry)):
-             ofst = list(self._frame.get_offset(i))
-             offsets.append([-ofst[0], -ofst[1]])
-        offsets = numpy.asarray(offsets)
-        if dformat == 'row':
-            return offsets
-        elif dformat == 'imat':
-            return numpy.append(offsets[:,0],offsets[:,1])
-    
-    def __get_all_subaperturs(self):
-        subs = []
-        for i in range(len(self.geometry.geometry)):
-             subs.append(self._frame[i])
-        ref_sub = self._frame[self.reference]
-        return numpy.asarray(subs), ref_sub
-    
-    def qoffsets(self):
-        subs, ref_sub = self.__get_all_subaperturs()
-        offsets = translations(len(subs), numpy.asarray(subs), ref_sub)
-        return numpy.asarray(sorted(offsets, key = lambda a: a[0]))[:,1:]
+   

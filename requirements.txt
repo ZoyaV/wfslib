@@ -5,6 +5,8 @@ numpy==1.14.3
 pycodestyle==2.5.0
 pytest==4.6.3
 scikit-image==0.15.0
+PyWavelets==1.1.1
+numba==0.48.0
 
 
 

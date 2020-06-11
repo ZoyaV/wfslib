@@ -1,0 +1,243 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="Python">
+  <head>
+    <meta charset="utf-8" />
+    <title>Wfslib - обработка данных датчика волнового фронта. &#8212; wfslib 0.1.200 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="wfslib">
+<h1>Wfslib - обработка данных датчика волнового фронта.<a class="headerlink" href="#wfslib" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="id1">
+<h2>Загрузка данных<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p>По умолчанию модуль имеет работать с двумя типами данных: numpy, hdf.
+Так же в модуль могут быть переданы изображения любого формата, считаные в массив numpy.
+При загрузке данных формата hdf, следует указать путь по которому
+располагаются данные, передав параметр <code class="docutils literal notranslate"><span class="pre">dataset_name</span></code></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">wfslib.wfs</span> <span class="k">import</span> <span class="n">WFSData</span>
+
+<span class="n">wfs</span> <span class="o">=</span> <span class="n">WFSData</span><span class="p">(</span><span class="s1">&#39;file.h5&#39;</span><span class="p">,</span> <span class="n">dataset_name</span> <span class="o">=</span> <span class="s2">&quot;data&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id2">
+<h2>Визуализация геометрии изображения<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<p>Модуль автоматически вычисляет геометрию снимка. Визуализировать данные с
+расчитанной геометрией можно следующим образом:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">wfs</span><span class="o">.</span><span class="n">show_geometry</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Передав параметр <code class="docutils literal notranslate"><span class="pre">show_type</span> <span class="pre">=</span> <span class="pre">&quot;offsets&quot;</span></code> в каждой субапертуре
+будет отображено смещение относительно референсной ячейки.
+Для изменения референсной ячейки, можно выполнить следующую команду <code class="docutils literal notranslate"><span class="pre">wfs.reference</span> <span class="pre">=</span> <span class="pre">20</span></code>.
+Таким образом, референсной ячейкой станет ячейка с номер 20.
+По умолчанию при визуализации, сетка геометрии будет отображаться на все изображение.
+Для отображения только качественных ячеек, можно воспользоваться командой
+<code class="docutils literal notranslate"><span class="pre">wfs.good_only</span> <span class="pre">=</span> <span class="pre">True</span></code>.</p>
+<p>Полный код для визуализации данных следующий:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">wfs</span> <span class="o">=</span> <span class="n">WFSData</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span>
+<span class="n">wfs</span><span class="o">.</span><span class="n">good_only</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="n">wfs</span><span class="o">.</span><span class="n">reference</span> <span class="o">=</span> <span class="mi">20</span>
+
+<span class="n">wfs</span><span class="o">.</span><span class="n">show_geometry</span><span class="p">(</span><span class="n">show_type</span> <span class="o">=</span> <span class="s2">&quot;offsets&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="figure align-center">
+<a class="reference internal image-reference" href="https://sun9-44.userapi.com/l6oGl5bsW6tTfW29L98EMDl8Y61xx67Ra9ujVw/OUG-BZ8BFmY.jpg"><img alt="Альтернативный текст" src="https://sun9-44.userapi.com/l6oGl5bsW6tTfW29L98EMDl8Y61xx67Ra9ujVw/OUG-BZ8BFmY.jpg" /></a>
+</div>
+</div>
+<div class="section" id="id3">
+<h2>Изменение параметров геометрии<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<p>Если высчитаные параметры геометрии определены не правильно их можно заменить
+с помощью метода <code class="docutils literal notranslate"><span class="pre">geometry.set_options</span></code>.</p>
+<p>Метод принимает следующие параметры:</p>
+<ul class="simple">
+<li><p>cell_width - изменяет размер ячейки;</p></li>
+<li><p>border - изменяет расстояние между ячейками;</p></li>
+<li><p>shift - кортеж из двух значений, смещение геометрии по x и по y;</p></li>
+<li><p>swap - изменение местами значений border и cell_width;</p></li>
+<li><p>rotate - поворот изображения.</p></li>
+</ul>
+<p>Рассчитаные в автоматическом режиме параметры можно получить так <code class="docutils literal notranslate"><span class="pre">wfs.geometry.options</span></code></p>
+<p>В коде изменение параметров может выглядеть так:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">wfs</span> <span class="o">=</span> <span class="n">WFSData</span><span class="p">(</span><span class="s2">&quot;points.h5&quot;</span><span class="p">,</span> <span class="n">dataset_name</span> <span class="o">=</span> <span class="s1">&#39;data&#39;</span><span class="p">)</span>
+<span class="n">wfs</span><span class="o">.</span><span class="n">good_only</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="n">wfs</span><span class="o">.</span><span class="n">reference</span> <span class="o">=</span> <span class="mi">20</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">wfs</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">options</span><span class="p">)</span>
+<span class="n">wfs</span><span class="o">.</span><span class="n">show_geometry</span><span class="p">()</span>
+
+<span class="n">wfs</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">set_options</span><span class="p">(</span><span class="n">shift</span><span class="o">=</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="o">-</span><span class="mi">38</span><span class="p">),</span><span class="n">swap</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">rotate</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">wfs</span><span class="o">.</span><span class="n">show_geometry</span><span class="p">()</span>
+</pre></div>
+</div>
+<div class="figure align-center">
+<a class="reference internal image-reference" href="https://sun9-55.userapi.com/To130RzlvYMExvkK0Rrz0_Ta5lSrrPZd1DssJg/iVS6h9Ula30.jpg"><img alt="Альтернативный текст" src="https://sun9-55.userapi.com/To130RzlvYMExvkK0Rrz0_Ta5lSrrPZd1DssJg/iVS6h9Ula30.jpg" /></a>
+</div>
+<div class="figure align-center">
+<a class="reference internal image-reference" href="https://sun9-23.userapi.com/SdQmWktGVIjzfKVh63XT84tMuHBpr2oYfko2Gg/0JKoMLOdml0.jpg"><img alt="Альтернативный текст" src="https://sun9-23.userapi.com/SdQmWktGVIjzfKVh63XT84tMuHBpr2oYfko2Gg/0JKoMLOdml0.jpg" /></a>
+</div>
+</div>
+<div class="section" id="id4">
+<h2>Обращение к субапертурам<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<p>Объект wfs позволяет обращаться и получать информацию в каждой субапертуре.
+Сделать это можно так:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">wfs</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">34</span><span class="p">])</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">wfs</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">14</span><span class="p">])</span>
+</pre></div>
+</div>
+<div class="figure align-center">
+<a class="reference internal image-reference" href="https://sun9-4.userapi.com/er4u7B2mBIAcam73L0_MgU8pAR3x2RnrTyk8pA/upOyKQGpA1k.jpg"><img alt="Альтернативный текст" src="https://sun9-4.userapi.com/er4u7B2mBIAcam73L0_MgU8pAR3x2RnrTyk8pA/upOyKQGpA1k.jpg" /></a>
+</div>
+<p>Таким образом отобразяться данные находящиеся на листе с индексом 0, в субапертуре с индексом 34.</p>
+</div>
+<div class="section" id="id5">
+<h2>Вычисление смещений<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<p>Вычислить смещения можно для либо сразу для определенного листа, либо для определенных субапертур.
+Смещения вычисляются относительно референсной ячейки.</p>
+<p><code class="docutils literal notranslate"><span class="pre">wfs[0].offsets</span></code> - вычислит смещения для листа 0.
+<code class="docutils literal notranslate"><span class="pre">wfs[0].qoffsets</span></code> - ускоренное вычисления смещений.
+<code class="docutils literal notranslate"><span class="pre">wfs[0].get_offset(23)</span></code> - вычислит смещения для листа для субапертуры 23.</p>
+</div>
+<div class="section" id="id6">
+<h2>Замена функции определения качественных ячеек<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><p>По умолчанию в модуле ячейка считается качественной, если ее усредненной
+значение больше std по всему кадру:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">qualitative_sub_std</span><span class="p">(</span><span class="n">cell</span><span class="p">,</span> <span class="n">std</span><span class="p">,</span> <span class="n">mean_val</span><span class="p">):</span>
+<span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">cell</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">std</span>
+</pre></div>
+</div>
+<p>Рассмотрим также функцию, фильтрующую по среднему значению:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">qualitative_sub_mean</span><span class="p">(</span><span class="n">cell</span><span class="p">,</span> <span class="n">std</span><span class="p">,</span> <span class="n">mean_val</span><span class="p">):</span>
+<span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">cell</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">mean_val</span>
+</pre></div>
+</div>
+</div></blockquote>
+<dl>
+<dt>И по медиане:</dt><dd><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">qualitative_sub_median</span><span class="p">(</span><span class="n">cell</span><span class="p">,</span> <span class="n">std</span><span class="p">,</span> <span class="n">mean_val</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">cell</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">mean_val</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+<p>Результаты:</p>
+<blockquote>
+<div><p>wfs.qualitative_function = qualitative_sub_std
+wfs.show_geometry()</p>
+</div></blockquote>
+<p>Визуализация:</p>
+<div class="figure align-center">
+<a class="reference internal image-reference" href="https://sun9-50.userapi.com/j62HJ08jDoo0HurVUsAvZZhNJ3R_g9SeNxty1A/10SZ3LCzMDI.jpg"><img alt="Альтернативный текст" src="https://sun9-50.userapi.com/j62HJ08jDoo0HurVUsAvZZhNJ3R_g9SeNxty1A/10SZ3LCzMDI.jpg" /></a>
+</div>
+<blockquote>
+<div><p>wfs.qualitative_function = qualitative_sub_mean
+wfs.show_geometry()</p>
+</div></blockquote>
+<p>Визуализация:</p>
+<div class="figure align-center">
+<a class="reference internal image-reference" href="https://sun9-47.userapi.com/KLvFlq9Dy_nf6OVOciLfmJPlvvnYNWvOjA1dPg/B6o9VbOXKgE.jpg"><img alt="Альтернативный текст" src="https://sun9-47.userapi.com/KLvFlq9Dy_nf6OVOciLfmJPlvvnYNWvOjA1dPg/B6o9VbOXKgE.jpg" /></a>
+</div>
+<blockquote>
+<div><p>wfs.qualitative_function = qualitative_sub_median
+wfs.show_geometry()</p>
+</div></blockquote>
+<p>Визуализация:</p>
+<div class="figure align-center">
+<a class="reference internal image-reference" href="https://sun9-35.userapi.com/Oy2-UbtJyhsU4pNLRukGbn4vqhiPlMWp77WwOw/ab97IQUobHQ.jpg"><img alt="Альтернативный текст" src="https://sun9-35.userapi.com/Oy2-UbtJyhsU4pNLRukGbn4vqhiPlMWp77WwOw/ab97IQUobHQ.jpg" /></a>
+</div>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="#">wfslib</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="#">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, zoya.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

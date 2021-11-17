@@ -1,32 +1,32 @@
 # wfslib
 
-Тема:  "Разработка программного модуля для обработки данных с датчика волнового фронта на языке Python"
+https://pypi.org/project/wfslib/
 
-Используем python >= 3.7
+wfslib is open library for wave front data processing:
 
-Вычисления(Зоя):
-* numpy
-* scipy
-* matplotlib
-* h5py
-* scikit-image
-* pybind11(C++, OpenMP, cmake)
+* different data type usage (hfd, bim, numpy);
+* automatic geometry calculation;
+* offsets calculation;
+* settings-tools for manage yours data.
 
-Cоздание пакета и тестирование(Полина):
-* mypy
-* pytest
-* hypothesis
-* setuptools
+### Code example
+«
+from wfslib.wfs import WFSData
 
-Оформление кода:
-* pycodestyle
-* pylint
-* Аннотации: https://docs.python.org/3/library/typing.html
+wfs = WFSData('../data/subpixel_test.h5', dataset_name = 'wfss/n0/detector') #Load data
 
-Ссылка на данные: https://cloud.iszf.irk.ru/index.php/s/odHPMppnvbgUHFW
+p = wfs.geometry.options #Geometry options
+print(p)
+wfs.reference = 8
 
-Перед заливкой кода не забываем выполнять:
+#Change geometry options
+wfs.geometry.set_options(shift=(-p['start_point'][0]+1,-p['start_point'][1]+1), border = 0, cell_width = p['cell_width']-1)
+#Visualization
+wfs.show_geometry()
+»
 
-* `pycodestyle`
-* `mypy -v wfslib`
-* `pytest -v`
+### Results
+«
+{'border': 4.0, 'cell_width': 110.0, 'start_point': [168, 131]}
+»
+

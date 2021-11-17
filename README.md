@@ -1,6 +1,8 @@
 # wfslib
 
 https://pypi.org/project/wfslib/
+https://wfslib.readthedocs.io/en/latest/
+
 
 wfslib is open library for wave front data processing:
 

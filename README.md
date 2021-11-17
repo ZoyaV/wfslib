@@ -12,12 +12,6 @@
 * scikit-image
 * pybind11(C++, OpenMP, cmake)
 
-Cоздание пакета и тестирование(Полина):
-* mypy
-* pytest
-* hypothesis
-* setuptools
-
 Оформление кода:
 * pycodestyle
 * pylint
